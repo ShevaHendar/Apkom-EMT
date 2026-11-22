@@ -1,0 +1,1902 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage{eumat}
+
+\begin{document}
+\begin{eulernotebook}
+\eulerheading{Statistika dengan Euler Math Toolbox (EMT)}
+\begin{eulercomment}
+Catatan ini membahas penggunaan Euler Math Toolbox (EMT) untuk
+mengolah dan menganalisis data statistika. Materi yang dibahas
+meliputi penyimpanan data, simulasi, pembacaan file, statistika
+deskriptif, penyajian grafik, dan pengujian hipotesis. Setiap bagian
+dilengkapi dengan penjelasan konsep serta contoh penggunaan perintah
+EMT. Penyusunan materi mengacu pada notebook EMT4Statistika dari dosen
+dengan tetap mempertahankan urutan pembahasannya. Pada bagian akhir,
+terdapat analisis data dan lima soal latihan beserta penyelesaiannya.
+
+\begin{eulercomment}
+\eulerheading{Cara Menggunakan Notebook}
+\begin{eulercomment}
+Jalankan perintah EMT yang diawali tanda \textgreater{} secara berurutan, mulai
+dari bagian awal. Beberapa perintah membutuhkan file data seperti
+table.dat, table1.dat, excel-data.csv, dan sample.csv, sehingga file
+tersebut perlu tersedia di folder kerja EMT. Pada bagian simulasi,
+hasil yang muncul dapat berbeda setiap kali perintah dijalankan.
+Ulangi perintah tersebut untuk mengamati perubahan hasilnya.
+
+\begin{eulercomment}
+\eulerheading{Pengantar Statistika}
+\begin{eulercomment}
+Statistika digunakan untuk mengolah data agar informasi di dalamnya
+lebih mudah dipahami dan dapat digunakan sebagai dasar pengambilan
+kesimpulan. Secara umum, pengolahan data dapat dilakukan dengan:\\
+- Mengumpulkan data melalui survei, pengukuran, atau simulasi.\\
+- Merangkum data menggunakan rata-rata, median, simpangan baku, dan
+grafik.\\
+- Mengamati pola atau hubungan yang terdapat dalam data.\\
+- Melakukan pengujian statistika untuk menilai suatu dugaan
+berdasarkan data yang diperoleh.
+
+EMT membantu proses tersebut melalui berbagai perintah pengolahan dan
+analisis data.
+
+\end{eulercomment}
+\eulersubheading{Beberapa istilah dasar yang digunakan dalam pembahasan:}
+\begin{eulercomment}
+- Rata-rata: jumlah seluruh nilai dibagi banyaknya data.\\
+- Median: nilai tengah setelah data diurutkan.\\
+- Simpangan baku: ukuran yang menunjukkan tingkat penyebaran data
+terhadap rata-ratanya.\\
+- Nilai-p: peluang memperoleh hasil yang sama ekstrem atau lebih
+ekstrem daripada hasil pengamatan, jika hipotesis nol benar.
+
+\begin{eulercomment}
+\eulerheading{1. Data dan Statistika Deskriptif}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Data disimpan sebagai vektor (satu baris angka) atau matriks (baris =
+pengamatan, kolom = variabel). Ukuran pemusatan menjawab "angka yang
+mewakili data itu berapa", yaitu rata-rata dan median. Ukuran sebaran
+menjawab "seberapa beragam datanya", yaitu simpangan baku (pembagi
+n-1) dan kuartil.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Gaji lima karyawan: 4, 4, 5, 5, dan 100 juta rupiah. Rata-ratanya 23,6
+juta, padahal hampir semua orang bergaji 4 sampai 5 juta. Median 5
+juta lebih jujur menggambarkan gaji yang umum. Jadi rata-rata mudah
+terseret nilai ekstrem, sedangkan median tidak. Dalam praktik,
+keduanya dilihat bersama.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+Tujuan: meringkas sepuluh hasil penimbangan bungkus gula yang
+seharusnya 1000 gram.
+
+Langkah 1. Simpan data sebagai vektor, lalu hitung median, rata-rata,
+dan simpangan baku.
+\end{eulercomment}
+\begin{eulerprompt}
+>M=[1000,1004,998,997,1002,1001,998,1004,998,997]; ...
+>median(M), mean(M), dev(M),
+\end{eulerprompt}
+\begin{euleroutput}
+  999
+  999.9
+  2.7264
+\end{euleroutput}
+\begin{eulercomment}
+Hasil: median 999, rata-rata 999,9, simpangan baku 2,73. Data berkumpul di sekitar 1000
+dan menyimpang rata-rata sekitar 2,73 gram. Pabrik memakai angka seperti ini untuk
+menilai apakah mesin pengemas masih akurat.
+
+Langkah 2. Kuartil Q1, Q2 (median), dan Q3 diambil dengan parameter p. Seperempat data
+berada di bawah Q1 dan tiga perempat di bawah Q3.
+\end{eulercomment}
+\begin{eulerprompt}
+>median(M,p=[0.25,0.5,0.75])
+\end{eulerprompt}
+\begin{euleroutput}
+  [998,  999,  1001.8]
+\end{euleroutput}
+\begin{eulercomment}
+Langkah 3. Diagram kotak (box-and-whiskers) merangkum nilai minimum, Q1, median, Q3, dan
+maksimum. Pada data ini tidak ada pencilan (outlier).
+\end{eulercomment}
+\begin{eulerprompt}
+>aspect(1.75); boxplot(M):
+\end{eulerprompt}
+\begin{eulercomment}
+Langkah 4. Hitung peluang nilai lebih dari 1005, dengan anggapan data berasal dari
+distribusi normal. Semua fungsi distribusi di Euler berakhiran "dis" dan menghitung
+fungsi distribusi kumulatif (peluang X \textless{}= x):
+\end{eulercomment}
+\begin{eulerformula}
+\[
+\text{normaldis}(x,m,d)=\int_{-\infty}^x \frac{1}{d\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{t-m}{d}\right)^2}\,dt
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Hasilnya dicetak dalam persen dengan dua angka desimal memakai fungsi print.
+\end{eulercomment}
+\begin{eulerprompt}
+>print((1-normaldis(1005,mean(M),dev(M)))*100,2,unit=" %")
+\end{eulerprompt}
+\begin{euleroutput}
+        3.07 %
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya 3,07 \%. Dari 100 bungkus, sekitar 3 bungkus diperkirakan lebih dari 1005 gram.
+Catatan kritis: PDF dosen memakai gprint dan menampilkan galat "Function gprint not
+found". Pada notebook (.en) perintahnya print, dan ini yang berjalan. Hasil ini hanya
+sahih jika data memang mendekati normal, padahal sampelnya hanya sepuluh.
+
+\end{eulercomment}
+\eulersubheading{Distribusi frekuensi}
+\begin{eulercomment}
+Jika datanya ratusan, angka mentah sulit dibaca, jadi data dikelompokkan ke dalam
+rentang (kelas). Misalkan banyak laki-laki pada tiap rentang tinggi badan adalah sebagai
+berikut (r = batas kelas, v = frekuensi).
+\end{eulercomment}
+\begin{eulerprompt}
+>r=155.5:4:187.5; v=[22,71,136,169,139,71,32,8];
+\end{eulerprompt}
+\begin{eulercomment}
+Histogram dari data tersebut:
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(r,v,a=150,b=200,c=0,d=190,bar=1,style="\(\backslash\)/"):
+\end{eulerprompt}
+\begin{eulercomment}
+Data itu dimasukkan ke dalam tabel. Tabel adalah cara menyimpan data statistika. Tabel ini
+punya tiga kolom: batas bawah (BB), batas atas (BA), dan frekuensi (Frek). Tanda "\textbar{}"
+memisahkan kolom, dan opsi labc pada writetable menentukan judul kolom.
+\end{eulercomment}
+\begin{eulerprompt}
+>T:=r[1:8]' | r[2:9]' | v'; writetable(T,labc=["BB","BA","Frek"])
+\end{eulerprompt}
+\begin{euleroutput}
+          BB        BA      Frek
+       155.5     159.5        22
+       159.5     163.5        71
+       163.5     167.5       136
+       167.5     171.5       169
+       171.5     175.5       139
+       175.5     179.5        71
+       179.5     183.5        32
+       183.5     187.5         8
+\end{euleroutput}
+\begin{eulercomment}
+Untuk menghitung rata-rata dan sebaran, dibutuhkan titik tengah tiap kelas. Dengan dua
+kolom pertama tabel:
+\end{eulercomment}
+\begin{eulerprompt}
+>(T[,1]+T[,2])/2 // titik tengah tiap kelas
+\end{eulerprompt}
+\begin{euleroutput}
+      157.5 
+      161.5 
+      165.5 
+      169.5 
+      173.5 
+      177.5 
+      181.5 
+      185.5 
+\end{euleroutput}
+\begin{eulercomment}
+Cara yang lebih singkat adalah melipat vektor r dengan [1/2,1/2]:
+\end{eulercomment}
+\begin{eulerprompt}
+>M=fold(r,[0.5,0.5])
+\end{eulerprompt}
+\begin{euleroutput}
+  [157.5,  161.5,  165.5,  169.5,  173.5,  177.5,  181.5,  185.5]
+\end{euleroutput}
+\begin{eulercomment}
+Rata-rata dan simpangan baku sampel dengan frekuensi v:
+\end{eulercomment}
+\begin{eulerprompt}
+>\{m,d\}=meandev(M,v); m, d,
+\end{eulerprompt}
+\begin{euleroutput}
+  169.9
+  5.9891
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya rata-rata 169,90 dan simpangan baku 5,99 dari 648 orang.
+
+Kurva kerapatan normal dengan rata-rata m dan simpangan baku d memakai rumus
+\end{eulercomment}
+\begin{eulerformula}
+\[
+y=\frac{1}{d\sqrt{2\pi}}e^{-\frac{(x-m)^2}{2d^2}}
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Nilainya antara 0 dan 1, sehingga untuk ditumpuk pada histogram perlu dikali jumlah data
+dan lebar kelas (4).
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d("qnormal(x,m,d)*sum(v)*4", ...
+>  xmin=min(r),xmax=max(r),thickness=3,add=1):
+\end{eulerprompt}
+\begin{eulercomment}
+Kurva mengikuti bentuk histogram, jadi tinggi badan kira-kira berdistribusi normal.
+Contoh nyata: toko pakaian memakai pola ini untuk menentukan berapa banyak ukuran S, M,
+dan L yang perlu diproduksi.
+
+\begin{eulercomment}
+\eulerheading{2. Tabel}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Data nyata biasanya tersimpan di file berupa tabel (hasil survei, ekspor Excel, dan
+sebagainya). EMT dapat membacanya sebagai tabel (frame data), sehingga tidak perlu
+diketik ulang. Kolom berisi huruf (misalnya "m" dan "f") dipetakan ke angka, yang disebut
+token.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Dinas pendidikan menyimpan nilai ribuan siswa di Excel. Dengan membaca file tabel di EMT,
+rata-rata dan grafiknya dapat dihitung langsung tanpa mengetik satu per satu.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+Pada folder notebook ini ada file table.dat. Isinya hasil survei 25 orang dari buku
+berbahasa Jerman "EinfÃ¼hrung in die Statistik mit R" karya A. Handl. Empat baris pertama:
+\end{eulercomment}
+\begin{eulerprompt}
+>printfile("table.dat",4);
+\end{eulerprompt}
+\begin{euleroutput}
+  Person Sex Age Titanic Evaluation Tip Problem
+  1 m 30 n . 1.80 n
+  2 f 23 y g 1.80 n
+  3 f 26 y g 1.80 y
+\end{euleroutput}
+\begin{eulercomment}
+Tabel punya 7 kolom: Person, Sex, Age, Titanic, Evaluation, Tip, Problem. Kolom bertanda
+huruf perlu diterjemahkan ke angka. Mula-mula saya mendefinisikan himpunan token sendiri.
+Fungsi strtokens() mengubah string menjadi vektor token.
+\end{eulercomment}
+\begin{eulerprompt}
+>mf:=["m","f"]; yn:=["y","n"]; ev:=strtokens("g vg m b vb");
+\end{eulerprompt}
+\begin{eulercomment}
+Tabel dibaca dengan terjemahan tersebut. Argumen tok2, tok4, dan seterusnya bukan bagian
+dari daftar parameter readtable(), jadi harus diberikan dengan ":=".
+\end{eulercomment}
+\begin{eulerprompt}
+>\{MT,hd\}=readtable("table.dat",tok2:=mf,tok4:=yn,tok5:=ev,tok7:=yn);
+>load over statistics;
+\end{eulerprompt}
+\begin{eulercomment}
+Untuk mencetak, himpunan token yang sama harus disebutkan lagi. Di sini hanya 10 baris
+pertama yang dicetak.
+\end{eulercomment}
+\begin{eulerprompt}
+>writetable(MT[1:10],labc=hd,wc=5,tok2:=mf,tok4:=yn,tok5:=ev,tok7:=yn);
+\end{eulerprompt}
+\begin{euleroutput}
+   Person  Sex  Age Titanic Evaluation  Tip Problem
+        1    m   30       n          .  1.8       n
+        2    f   23       y          g  1.8       n
+        3    f   26       y          g  1.8       y
+        4    m   33       n          .  2.8       n
+        5    m   37       n          .  1.8       n
+        6    m   28       y          g  2.8       y
+        7    f   31       y         vg  2.8       n
+        8    m   23       n          .  0.8       n
+        9    f   24       y         vg  1.8       y
+       10    m   26       n          .  1.8       n
+\end{euleroutput}
+\begin{eulercomment}
+Tanda titik "." menyatakan data yang tidak tersedia (not available).
+
+Jika himpunan token tidak mau ditentukan sendiri, cukup sebutkan kolom mana yang berisi
+token, dan readtable() akan mengembalikan himpunan token yang ditemukan.
+\end{eulercomment}
+\begin{eulerprompt}
+>ctok=[2,4,5,7]; \{MT,hd,tok\}=readtable("table.dat",ctok=ctok);
+>tok
+\end{eulerprompt}
+\begin{euleroutput}
+  m
+  n
+  f
+  y
+  g
+  vg
+\end{euleroutput}
+\begin{eulercomment}
+Tabel kini berisi angka hasil terjemahan token. Nilai khusus "." diperlakukan sebagai
+NAN (bukan angka). Terjemahan ini dapat diubah dengan parameter NA dan NAval.
+\end{eulercomment}
+\begin{eulerprompt}
+>MT[1]
+\end{eulerprompt}
+\begin{euleroutput}
+  [1,  1,  30,  2,  NAN,  1.8,  2]
+\end{euleroutput}
+\begin{eulercomment}
+Isi tabel dengan angka mentah (belum diterjemahkan kembali):
+\end{eulercomment}
+\begin{eulerprompt}
+>writetable(MT,wc=5)
+\end{eulerprompt}
+\begin{euleroutput}
+      1    1   30    2    .  1.8    2
+      2    3   23    4    5  1.8    2
+      3    3   26    4    5  1.8    4
+      4    1   33    2    .  2.8    2
+      5    1   37    2    .  1.8    2
+      6    1   28    4    5  2.8    4
+      7    3   31    4    6  2.8    2
+      8    1   23    2    .  0.8    2
+      9    3   24    4    6  1.8    4
+     10    1   26    2    .  1.8    2
+     11    3   23    4    6  1.8    4
+     12    1   32    4    5  1.8    2
+     13    1   29    4    6  1.8    4
+     14    3   25    4    5  1.8    4
+     15    3   31    4    5  0.8    2
+     16    1   26    4    5  2.8    2
+     17    1   37    2    .  3.8    2
+     18    1   38    4    5    .    2
+     19    3   29    2    .  3.8    2
+     20    3   28    4    6  1.8    2
+     21    3   28    4    1  2.8    4
+     22    3   28    4    6  1.8    4
+     23    3   38    4    5  2.8    2
+     24    3   27    4    1  1.8    4
+     25    1   27    2    .  2.8    4
+\end{euleroutput}
+\begin{eulercomment}
+Rata-rata satu kolom (misalnya Tip, kolom ke-6) dapat dihitung langsung:
+\end{eulercomment}
+\begin{eulerprompt}
+>mean(tablecol(MT,6))
+\end{eulerprompt}
+\begin{euleroutput}
+  2.175
+\end{euleroutput}
+\begin{eulercomment}
+Rata-rata tip adalah 2,175. Baris yang bertanda "." dilewati oleh tablecol.
+
+Fungsi getstatistics() mengembalikan unsur-unsur berbeda dalam sebuah vektor beserta
+banyaknya. Di sini dipakai pada kolom ke-2 (jenis kelamin):
+\end{eulercomment}
+\begin{eulerprompt}
+>\{xu,count\}=getstatistics(tablecol(MT,2)); xu, count,
+\end{eulerprompt}
+\begin{euleroutput}
+  [1,  3]
+  [12,  13]
+\end{euleroutput}
+\begin{eulerprompt}
+>writetable(count',labr=tok[xu])
+\end{eulerprompt}
+\begin{euleroutput}
+           m        12
+           f        13
+\end{euleroutput}
+\begin{eulercomment}
+Laki-laki (m) 12 orang dan perempuan (f) 13 orang.
+
+Dengan getstatistics() dua kolom, banyaknya setiap kombinasi dapat dihitung:
+\end{eulercomment}
+\begin{eulerprompt}
+>MT24=tablecol(MT,[2,4]); ...
+>\{xu1,xu2,count\}=getstatistics(MT24[1],MT24[2]); ...
+>writetable(count,labr=tok[xu1],labc=tok[xu2])
+\end{eulerprompt}
+\begin{euleroutput}
+                     n         y
+           m         7         5
+           f         1        12
+\end{euleroutput}
+\begin{eulercomment}
+Dari 13 perempuan, 12 menjawab y (sudah menonton atau mengenal Titanic). Dari 12
+laki-laki, hanya 5 yang menjawab y.
+
+Uji lanjutan (tambahan dari saya): apakah jawaban Titanic bergantung pada jenis kelamin?
+H0: kedua hal itu saling bebas. Tabel frekuensi harapan dilihat dulu:
+\end{eulercomment}
+\begin{eulerprompt}
+>writetable(expectedtable(count),wc=8,dc=2,labr=tok[xu1],labc=tok[xu2])
+\end{eulerprompt}
+\begin{euleroutput}
+                 n       y
+         m    3.84    8.16
+         f    4.16    8.84
+\end{euleroutput}
+\begin{eulerprompt}
+>tabletest(count)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.0066909
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p sekitar 0,0067 \textless{} 0,05 (dihitung ulang di luar EMT dengan uji chi-kuadrat
+Pearson), jadi H0 ditolak. Catatan kritis: dua dari empat sel punya frekuensi harapan
+di bawah 5 (3,84 dan 4,16). Pada kondisi itu aproksimasi chi-kuadrat kurang andal, dan
+uji eksak Fisher lebih tepat (nilai-p sekitar 0,011, hasilnya tetap menolak H0). Jadi
+kesimpulannya sama, tetapi sampel 25 orang membuat dugaan ini perlu dibaca hati-hati.
+
+Tabel dapat ditulis ke berkas, lalu dibaca kembali.
+\end{eulercomment}
+\begin{eulerprompt}
+>filename="test.dat"; ...
+>writetable(count,labr=tok[xu1],labc=tok[xu2],file=filename);
+>\{MT2,hd2,tk2,hdr\}=readtable(filename,>clabs,>rlabs); ...
+>writetable(MT2,labr=hdr,labc=hd2)
+\end{eulerprompt}
+\begin{euleroutput}
+                     n         y
+           m         7         5
+           f         1        12
+\end{euleroutput}
+\begin{eulercomment}
+Terakhir, berkas dihapus.
+\end{eulercomment}
+\begin{eulerprompt}
+>fileremove(filename);
+\end{eulerprompt}
+\begin{eulercomment}
+\begin{eulercomment}
+\eulerheading{3. Distribusi}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Distribusi menggambarkan nilai apa saja yang mungkin muncul dan seberapa sering tiap nilai
+muncul. Data hasil simulasi (acak) mengikuti distribusi yang dipilih. Hasilnya berbeda tiap
+pengulangan, tetapi polanya tetap. Makin banyak data, makin jelas polanya.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Sebelum membuka gerai, pemilik usaha dapat mensimulasikan jumlah pelanggan per jam untuk
+menebak kapan antrean paling panjang, tanpa harus mencoba langsung. Simulasi murah dan aman
+untuk berlatih sebelum keputusan nyata.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+Langkah 1. Dengan plot2d tersedia cara mudah menggambar distribusi data hasil percobaan.
+Berikut 1000 data acak berdistribusi normal, histogram dengan 20 kelas, dan kurva normal
+baku di atasnya.
+\end{eulercomment}
+\begin{eulerprompt}
+>p=normal(1,1000); //sampel p: 1000 data acak berdistribusi normal
+>plot2d(p,distribution=20,style="\(\backslash\)/"); // gambar sampel p
+>plot2d("qnormal(x,0,1)",add=1): // tambahkan kurva normal baku
+\end{eulerprompt}
+\begin{eulercomment}
+Perhatikan perbedaan antara batang (sampel) dan kurva (distribusi sebenarnya). Tekan ENTER
+pada ketiga perintah itu sekali lagi untuk melihat hasil sampel yang lain.
+
+Langkah 2. Perbandingan 10 simulasi masing-masing 1000 data normal dengan diagram kotak.
+Diagram ini menunjukkan median, kuartil 25 \% dan 75 \%, nilai minimum dan maksimum, serta
+pencilan.
+\end{eulercomment}
+\begin{eulerprompt}
+>p=normal(10,1000); boxplot(p):
+\end{eulerprompt}
+\begin{eulercomment}
+Langkah 3. Bilangan bulat acak dibangkitkan dengan intrandom. Berikut simulasi pelemparan
+dadu 6000 kali. Fungsi getmultiplicities(v,x) menghitung berapa kali unsur v muncul dalam
+x, lalu hasilnya digambar dengan columnsplot(). Tiap sisi seharusnya muncul sekitar 1000
+kali (garis merah).
+\end{eulercomment}
+\begin{eulerprompt}
+>k=intrandom(1,6000,6);  ...
+>columnsplot(getmultiplicities(1:6,k));  ...
+>ygrid(1000,color=red):
+\end{eulerprompt}
+\begin{eulercomment}
+Langkah 4. Distribusi eksponensial. Peubah acak kontinu X berdistribusi eksponensial bila
+fungsi kerapatannya
+\end{eulercomment}
+\begin{eulerformula}
+\[
+f_X(x)=\lambda e^{-\lambda x},\quad x>0,\quad \lambda>0,
+\]
+\end{eulerformula}
+\begin{eulercomment}
+dengan parameter
+\end{eulercomment}
+\begin{eulerformula}
+\[
+\lambda=\frac{1}{\mu},\quad \mu \text{ adalah rata-rata, ditulis } X \sim \text{Exponential}(\lambda).
+\]
+\end{eulerformula}
+\begin{eulercomment}
+Berikut data acak eksponensial dengan rata-rata 2 (cocok untuk waktu tunggu, misalnya
+selang waktu antar pelanggan yang datang).
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(randexponential(1,1000,2),>distribution):
+\end{eulerprompt}
+\begin{eulercomment}
+Data menumpuk di dekat 0 lalu menurun ke kanan, ciri distribusi eksponensial.
+
+Langkah 5. Untuk banyak distribusi, Euler dapat menghitung fungsi distribusi dan
+inversnya. Kurva fungsi distribusi kumulatif normal baku:
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d("normaldis",-4,4):
+\end{eulerprompt}
+\begin{eulercomment}
+Kurva naik dari 0 ke 1 dan bernilai 0,5 di x = 0.
+
+Langkah 6. Peluang sama dengan luas daerah di bawah kurva kerapatan. Daerah yang diarsir
+adalah P(2 \textless{} X \textless{} 5) untuk X normal dengan rata-rata 1 dan simpangan baku 1,5.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d("qnormal(x,1,1.5)",-4,6);  ...
+>plot2d("qnormal(x,1,1.5)",a=2,b=5,>add,>filled):
+>normaldis(5,1,1.5)-normaldis(2,1,1.5)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.24866
+\end{euleroutput}
+\begin{eulercomment}
+Peluangnya 0,2487, yaitu sekitar 24,9 \%. Nilai yang sama diperoleh dari integral
+\end{eulercomment}
+\begin{eulerformula}
+\[
+\int_2^5 \frac{1}{1.5\sqrt{2\pi}}e^{-\frac{1}{2}\left(\frac{x-1}{1.5}\right)^2}\,dx
+\]
+\end{eulerformula}
+\begin{eulerprompt}
+>gauss("qnormal(x,1,1.5)",2,5)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.24866
+\end{euleroutput}
+\begin{eulercomment}
+\begin{eulercomment}
+\eulerheading{4. Distribusi Diskret}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Distribusi diskret memberi peluang pada nilai-nilai yang dapat dihitung (misalnya 1 sampai
+6 pada dadu). Euler memungkinkan distribusi diskret buatan sendiri, dan menyediakan
+distribusi binomial, hipergeometrik, dan multinomial.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Mesin undian yang dicurigai berat sebelah: dengan simulasi dan uji sederhana, kecurangan
+sekecil apa pun dapat dideteksi bila percobaannya cukup banyak.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+Langkah 1. Distribusi binomial. bindis() memberi peluang paling banyak i keberhasilan dari
+n percobaan.
+\end{eulercomment}
+\begin{eulerprompt}
+>bindis(410,1000,0.4)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.7514
+\end{euleroutput}
+\begin{eulercomment}
+Selang kepercayaan Clopper-Pearson untuk parameter p memakai invers fungsi Beta. Artinya,
+jika p di luar selang itu, hasil pengamatan 410 dari 1000 termasuk langka.
+\end{eulercomment}
+\begin{eulerprompt}
+>clopperpearson(410,1000)
+\end{eulerprompt}
+\begin{euleroutput}
+  [0.37932,  0.44121]
+\end{euleroutput}
+\begin{eulercomment}
+Cara langsung berikut memberi hasil yang sama, tetapi untuk n besar penjumlahan langsung
+tidak teliti dan lambat.
+\end{eulercomment}
+\begin{eulerprompt}
+>p=0.4; i=0:410; n=1000; sum(bin(n,i)*p^i*(1-p)^(n-i))
+\end{eulerprompt}
+\begin{euleroutput}
+  0.7514
+\end{euleroutput}
+\begin{eulercomment}
+invbindis() menghitung invers dari bindis().
+\end{eulercomment}
+\begin{eulerprompt}
+>invbindis(0.75,1000,0.4)
+\end{eulerprompt}
+\begin{euleroutput}
+  409.93
+\end{euleroutput}
+\begin{eulercomment}
+Langkah 2. Pada permainan bridge, ada 5 kartu tersisa (dari 52) pada dua tangan (26
+kartu). Peluang pembagian yang lebih buruk daripada 3:2 (misalnya 0:5, 1:4, 4:1, atau 5:0):
+\end{eulercomment}
+\begin{eulerprompt}
+>2*hypergeomsum(1,5,13,26)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.32174
+\end{euleroutput}
+\begin{eulercomment}
+Peluangnya 0,3217, yaitu sekitar 32 \%.
+
+Langkah 3. Simulasi distribusi multinomial: 10 baris, masing-masing 1000 percobaan dengan
+peluang 0,4; 0,1; dan 0,5.
+\end{eulercomment}
+\begin{eulerprompt}
+>randmultinomial(10,1000,[0.4,0.1,0.5])
+\end{eulerprompt}
+\begin{euleroutput}
+        390       124       486 
+        394        92       514 
+        402       135       463 
+        399       101       500 
+        418        93       489 
+        398       102       500 
+        393       100       507 
+        387        92       521 
+        414       102       484 
+        413        94       493 
+\end{euleroutput}
+\begin{eulercomment}
+Kolom-kolomnya berkisar di sekitar 400, 100, dan 500.
+
+\begin{eulercomment}
+\eulerheading{5. Menggambar Data}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Grafik membuat pola terlihat sekilas. Pilihannya bergantung pada pertanyaan: diagram
+batang untuk membandingkan jumlah, diagram lingkaran untuk bagian terhadap keseluruhan,
+garis untuk perubahan dari waktu ke waktu, titik (sebar) untuk hubungan dua variabel, dan
+histogram untuk bentuk sebaran.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Hasil pemilu ditampilkan dengan diagram batang (siapa unggul) dan diagram lingkaran (berapa
+persen suara tiap partai). Data yang dipakai adalah hasil pemilu parlemen Jerman sejak 1990
+dalam jumlah kursi (dari notebook dosen). Kolom: tahun, jumlah kursi seluruhnya, lalu kursi
+CDU/CSU, SPD, FDP, Gr (Hijau), dan Li (Kiri).
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+\end{eulercomment}
+\begin{eulerprompt}
+>BW := [ ...
+>1990,662,319,239,79,8,17; ...
+>1994,672,294,252,47,49,30; ...
+>1998,669,245,298,43,47,36; ...
+>2002,603,248,251,47,55,2; ...
+>2005,614,226,222,61,51,54; ...
+>2009,622,239,146,93,68,76; ...
+>2013,631,311,193,0,63,64];
+\end{eulerprompt}
+\begin{eulercomment}
+Nama partai disimpan sebagai vektor string:
+\end{eulercomment}
+\begin{eulerprompt}
+>P:=["CDU/CSU","SPD","FDP","Gr","Li"];
+\end{eulerprompt}
+\begin{eulercomment}
+Persentase dicetak rapi. Kolom 3 sampai 7 adalah kursi tiap partai, kolom 2 jumlah seluruh
+kursi, dan kolom 1 tahun pemilu.
+\end{eulercomment}
+\begin{eulerprompt}
+>BT:=BW[,3:7]; BT:=BT/sum(BT); YT:=BW[,1]';
+\end{eulerprompt}
+\begin{eulercomment}
+Tabel statistik dicetak dengan nama partai sebagai judul kolom dan tahun sebagai judul
+baris. Lebar kolom bawaan wc=10 diperkecil agar lebih padat.
+\end{eulercomment}
+\begin{eulerprompt}
+>writetable(BT*100,wc=6,dc=0,>fixed,labc=P,labr=YT)
+\end{eulerprompt}
+\begin{euleroutput}
+         CDU/CSU   SPD   FDP    Gr    Li
+    1990      48    36    12     1     3
+    1994      44    38     7     7     4
+    1998      37    45     6     7     5
+    2002      41    42     8     9     0
+    2005      37    36    10     8     9
+    2009      38    23    15    11    12
+    2013      49    31     0    10    10
+\end{euleroutput}
+\begin{eulercomment}
+Perkalian matriks berikut menjumlahkan persentase dua partai besar. Hasilnya menunjukkan
+partai kecil makin berpengaruh sampai 2009.
+\end{eulercomment}
+\begin{eulerprompt}
+>BT1:=(BT.[1;1;0;0;0])'*100
+\end{eulerprompt}
+\begin{euleroutput}
+  [84.29,  81.25,  81.166,  82.753,  72.964,  61.897,  79.873]
+\end{euleroutput}
+\begin{eulercomment}
+Grafik statistik sederhana untuk garis dan titik sekaligus. Alternatifnya, memanggil plot2d
+dua kali dengan \textgreater{}add.
+\end{eulercomment}
+\begin{eulerprompt}
+>statplot(YT,BT1,"b"):
+\end{eulerprompt}
+\begin{eulercomment}
+Warna tiap partai ditetapkan lebih dulu:
+\end{eulercomment}
+\begin{eulerprompt}
+>CP:=[rgb(0.5,0.5,0.5),red,yellow,green,rgb(0.8,0,0)];
+\end{eulerprompt}
+\begin{eulercomment}
+Diagram batang perolehan kursi tiap partai pada pemilu 2009:
+\end{eulercomment}
+\begin{eulerprompt}
+>columnsplot(BW[6,3:7],P,color=CP):
+\end{eulerprompt}
+\begin{eulercomment}
+Diagram lingkaran. Karena hitam dan kuning berkoalisi, urutannya disusun ulang.
+\end{eulercomment}
+\begin{eulerprompt}
+>i=[1,3,5,4,2]; piechart(BW[6,3:7][i],color=CP[i],lab=P[i]):
+\end{eulerprompt}
+\begin{eulercomment}
+Diagram bintang menampilkan tiap nilai sebagai sinar dari pusat (data acak):
+\end{eulercomment}
+\begin{eulerprompt}
+>starplot(normal(1,10)+4,lab=1:10,>rays):
+\end{eulerprompt}
+\begin{eulercomment}
+Diagram impuls data acak yang seragam pada [0,1]:
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(makeimpulse(1:10,random(1,10)),>bar):
+\end{eulerprompt}
+\begin{eulercomment}
+Diagram pencar (scatter) mudah dibuat dengan plot titik biasa. Grafik berikut menunjukkan
+X dan X+Y berkorelasi positif.
+\end{eulercomment}
+\begin{eulerprompt}
+>x=normal(1,100); plot2d(x,x+rotright(x),>points,style=".."):
+\end{eulerprompt}
+\begin{eulercomment}
+\begin{eulercomment}
+\eulerheading{6. Regresi dan Korelasi}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Regresi linear mencari garis y = a + b x yang paling dekat dengan titik-titik data. Nilai b
+menunjukkan berapa y berubah ketika x naik 1. Korelasi (antara -1 dan 1) mengukur seberapa
+erat dua variabel naik atau turun bersama.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Jam belajar (x) dan nilai ujian (y): makin lama belajar, nilai cenderung naik. Garis regresi
+memberi perkiraan nilai untuk jam belajar tertentu. Perkiraan itu hanya sebatas pola yang
+tampak pada data, bukan bukti sebab-akibat.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+Langkah 1. Garis regresi untuk data satu peubah dicari dengan polyfit(x,y,1), yang memberi
+[a, b].
+\end{eulercomment}
+\begin{eulerprompt}
+>x=1:10; y=[2,3,1,5,6,3,7,8,9,8]; writetable(x'|y',labc=["x","y"])
+\end{eulerprompt}
+\begin{euleroutput}
+           x         y
+           1         2
+           2         3
+           3         1
+           4         5
+           5         6
+           6         3
+           7         7
+           8         8
+           9         9
+          10         8
+\end{euleroutput}
+\begin{eulerprompt}
+>p=polyfit(x,y,1)
+\end{eulerprompt}
+\begin{euleroutput}
+  [0.73333,  0.81212]
+\end{euleroutput}
+\begin{eulercomment}
+Garisnya y = 0,733 + 0,812 x.
+
+Langkah 2. Contoh lain: survei mahasiswa berupa usia, usia orang tua, dan banyak saudara
+dari file table1.dat. Kolom 2 berisi "m" dan "f"; terjemahannya ditentukan lewat tok2
+(bukan dikumpulkan otomatis oleh readtable).
+\end{eulercomment}
+\begin{eulerprompt}
+>\{MS,hd\}:=readtable("table1.dat",tok2:=["m","f"]);  ...
+>writetable(MS,labc=hd,tok2:=["m","f"]);
+\end{eulerprompt}
+\begin{euleroutput}
+      Person       Sex       Age    Mother    Father  Siblings
+           1         m        29        58        61         1
+           2         f        26        53        54         2
+           3         m        24        49        55         1
+           4         f        25        56        63         3
+           5         f        25        49        53         0
+           6         f        23        55        55         2
+           7         m        23        48        54         2
+           8         m        27        56        58         1
+           9         m        25        57        59         1
+          10         m        24        50        54         1
+          11         f        26        61        65         1
+          12         m        24        50        52         1
+          13         m        29        54        56         1
+          14         m        28        48        51         2
+          15         f        23        52        52         1
+          16         m        24        45        57         1
+          17         f        24        59        63         0
+          18         f        23        52        55         1
+          19         m        24        54        61         2
+          20         f        23        54        55         1
+\end{euleroutput}
+\begin{eulercomment}
+Bagaimana usia-usia itu saling bergantung? Kesan pertama didapat dari diagram pencar
+berpasangan.
+\end{eulercomment}
+\begin{eulerprompt}
+>scatterplots(tablecol(MS,3:5),hd[3:5]):
+\end{eulerprompt}
+\begin{eulercomment}
+Usia ayah dan usia ibu jelas saling bergantung. Garis regresi dicari: s usia ayah dan t usia
+ibu.
+\end{eulercomment}
+\begin{eulerprompt}
+>cs:=MS[,4:5]'; ps:=polyfit(cs[1],cs[2],1)
+\end{eulerprompt}
+\begin{euleroutput}
+  [17.379,  0.74096]
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya s = 17,38 + 0,741 t. Ini jelas model yang kurang tepat, karena selisih usia ayah
+dan ibu mungkin sedikit bergantung pada usia, tetapi tidak sebesar itu. Model yang lebih
+wajar adalah s = a + t, dengan a rata-rata selisih usia ayah dan ibu.
+\end{eulercomment}
+\begin{eulerprompt}
+>da:=mean(cs[2]-cs[1])
+\end{eulerprompt}
+\begin{euleroutput}
+  3.65
+\end{euleroutput}
+\begin{eulercomment}
+Rata-rata ayah 3,65 tahun lebih tua daripada ibu. Semua ditampilkan dalam satu diagram
+pencar: titik data, garis regresi (merah), dan garis s = t + 3,65 (biru).
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(cs[1],cs[2],>points);  ...
+>plot2d("evalpoly(x,ps)",color=red,style=".",>add);  ...
+>plot2d("x+da",color=blue,>add):
+\end{eulerprompt}
+\begin{eulercomment}
+Diagram kotak kedua usia hanya menunjukkan bahwa keduanya berbeda.
+\end{eulercomment}
+\begin{eulerprompt}
+>boxplot(cs,["mothers","fathers"]):
+\end{eulerprompt}
+\begin{eulercomment}
+Koefisien korelasi menunjukkan korelasi positif.
+\end{eulercomment}
+\begin{eulerprompt}
+>correl(cs[1],cs[2])
+\end{eulerprompt}
+\begin{euleroutput}
+  0.75883
+\end{euleroutput}
+\begin{eulercomment}
+Korelasi peringkat mengukur keserupaan urutan pada kedua vektor, dan juga cukup positif.
+\end{eulercomment}
+\begin{eulerprompt}
+>rankcorrel(cs[1],cs[2])
+\end{eulerprompt}
+\begin{euleroutput}
+  0.75893
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya 0,759 dan 0,759: hubungan positif yang cukup kuat. Catatan kritis: korelasi kuat
+tidak membuktikan bahwa usia satu orang tua menentukan usia yang lain. Model s = t + a
+lebih masuk akal dibanding model regresi, walaupun kecocokan angkanya lebih rendah.
+
+\begin{eulercomment}
+\eulerheading{7. Membuat Fungsi Baru}
+\begin{eulercomment}
+Bahasa EMT dapat dipakai untuk memprogram fungsi baru. Sebagai contoh, fungsi kemiringan
+(skewness):
+\end{eulercomment}
+\begin{eulerformula}
+\[
+\text{sk}(x) = \dfrac{\sqrt{n} \sum_i (x_i-m)^3}{\left(\sum_i (x_i-m)^2\right)^{3/2}}
+\]
+\end{eulerformula}
+\begin{eulercomment}
+dengan m rata-rata x. Kemiringan 0 berarti sebaran simetris, positif berarti ekor kanan
+lebih panjang, dan negatif berarti ekor kiri lebih panjang.
+\end{eulercomment}
+\begin{eulerprompt}
+>function skew (x:vector) ...
+\end{eulerprompt}
+\begin{eulerudf}
+  m=mean(x);
+  return sqrt(cols(x))*sum((x-m)^3)/(sum((x-m)^2))^(3/2);
+  endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Bahasa matriks membuat implementasinya sangat singkat dan efisien. Dicoba pada data acak
+normal (hasilnya berubah tiap ENTER, sekitar 0 untuk data banyak):
+\end{eulercomment}
+\begin{eulerprompt}
+>data=normal(20); skew(normal(10))
+\end{eulerprompt}
+\begin{euleroutput}
+  -0.13409
+\end{euleroutput}
+\begin{eulercomment}
+Fungsi lain adalah koefisien kemiringan Pearson:
+\end{eulercomment}
+\begin{eulerprompt}
+>function skew1 (x) := 3*(mean(x)-median(x))/dev(x)
+>skew1(data)
+\end{eulerprompt}
+\begin{euleroutput}
+  1.423
+\end{euleroutput}
+\begin{eulercomment}
+\begin{eulercomment}
+\eulerheading{8. Simulasi Monte Carlo}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Monte Carlo berarti mengulang percobaan acak berkali-kali untuk melihat polanya. Cara ini
+dipakai ketika menghitung peluang secara langsung terlalu rumit.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Perusahaan asuransi mensimulasikan ribuan skenario klaim untuk memperkirakan dana cadangan
+yang diperlukan.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+Langkah 1. Simulasi 1000 kali pelemparan 3 dadu, lalu frekuensi tiap jumlah mata (3 sampai
+18) dihitung.
+\end{eulercomment}
+\begin{eulerprompt}
+>ds:=sum(intrandom(1000,3,6))';  fs=getmultiplicities(3:18,ds)
+\end{eulerprompt}
+\begin{euleroutput}
+  [4,  19,  27,  41,  72,  100,  118,  118,  138,  108,  77,  75,  57,
+  32,  12,  2]
+\end{euleroutput}
+\begin{eulerprompt}
+>columnsplot(fs,lab=3:18):
+\end{eulerprompt}
+\begin{eulercomment}
+Langkah 2. Distribusi yang diharapkan tidak mudah dihitung, sehingga dipakai rekursi.
+Fungsi berikut menghitung banyak cara bilangan k dapat dinyatakan sebagai jumlah n bilangan
+pada rentang 1 sampai m.
+\end{eulercomment}
+\begin{eulerprompt}
+>function map countways (k; n, m) ...
+\end{eulerprompt}
+\begin{eulerudf}
+    if n==1 then return k>=1 && k<=m
+    else
+      sum=0;
+      loop 1 to m; sum=sum+countways(k-#,n-1,m); end;
+      return sum;
+    end;
+  endfunction
+\end{eulerudf}
+\begin{eulercomment}
+Untuk tiga dadu:
+\end{eulercomment}
+\begin{eulerprompt}
+>cw=countways(3:18,3,6)
+\end{eulerprompt}
+\begin{euleroutput}
+  [1,  3,  6,  10,  15,  21,  25,  27,  27,  25,  21,  15,  10,  6,  3,
+  1]
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya [1, 3, 6, 10, 15, 21, 25, 27, 27, 25, 21, 15, 10, 6, 3, 1], yang berjumlah 216 =
+6\textasciicircum{}3. Nilai harapan ditambahkan pada gambar (peluang cw/6\textasciicircum{}3, dikali 1000):
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(cw/6^3*1000,>add); plot2d(cw/6^3*1000,>points,>add):
+\end{eulerprompt}
+\begin{eulercomment}
+Batang simulasi mengikuti garis teori. Jumlah beberapa dadu berbentuk lonceng dan mendekati
+distribusi normal, yaitu Teorema Limit Pusat: jumlah banyak peubah acak bebas yang identik
+mendekati distribusi normal. Contoh nyata: tinggi badan dipengaruhi banyak faktor kecil (gen,
+gizi, dan lainnya) yang dijumlahkan, sehingga hasil akhirnya berbentuk lonceng.
+
+Langkah 3. Simpangan baku rata-rata n data normal baku adalah 1/akar(n). Untuk n = 10:
+\end{eulercomment}
+\begin{eulerprompt}
+>longformat; 1/sqrt(10)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.316227766017
+\end{euleroutput}
+\begin{eulerprompt}
+>shortformat;
+\end{eulerprompt}
+\begin{eulercomment}
+Dicek dengan simulasi: 10000 kali vektor acak berisi 10 data.
+\end{eulercomment}
+\begin{eulerprompt}
+>M=normal(10000,10); dev(mean(M)')
+\end{eulerprompt}
+\begin{euleroutput}
+  0.31914
+\end{euleroutput}
+\begin{eulerprompt}
+>plot2d(mean(M)',>distribution):
+\end{eulerprompt}
+\begin{eulercomment}
+Hasil simulasi (sekitar 0,31) mendekati nilai teori 0,316. Artinya, rata-rata banyak data
+lebih stabil daripada satu data tunggal. Median dari 10 data normal baku punya simpangan
+yang lebih besar:
+\end{eulercomment}
+\begin{eulerprompt}
+>dev(median(M)')
+\end{eulerprompt}
+\begin{euleroutput}
+  0.37273
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya sekitar 0,365, lebih besar daripada 0,316.
+
+\begin{eulercomment}
+\eulerheading{9. Uji Statistika}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Uji statistika menjawab pertanyaan "apakah perbedaan yang terlihat nyata atau hanya
+kebetulan". Prosesnya: tetapkan hipotesis nol (H0, biasanya "tidak ada perbedaan"), hitung
+nilai-p, lalu putuskan. Semua uji di EMT mengembalikan galat yang diterima jika H0 ditolak,
+yaitu nilai-p. Jika nilai-p \textless{} 0,05, H0 ditolak. Jika tidak, H0 tidak dapat ditolak.
+"Tidak dapat ditolak" tidak sama dengan "terbukti benar", hanya berarti buktinya belum
+cukup.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Sebuah sekolah mencoba metode belajar baru dan nilai rata-rata kelas naik 3 poin. Apakah
+kenaikan itu karena metodenya atau hanya kebetulan? Uji statistika membantu menjawabnya
+dengan angka, bukan dengan perasaan.
+
+\end{eulercomment}
+\eulersubheading{Praktik di EMT}
+\begin{eulercomment}
+a. Uji chi-kuadrat untuk dadu. Pada 600 lemparan didapat frekuensi berikut, yang
+dimasukkan ke uji chi-kuadrat. H0: dadu seimbang (seragam).
+\end{eulercomment}
+\begin{eulerprompt}
+>chitest([90,103,114,101,103,89],dup(100,6)')
+\end{eulerprompt}
+\begin{euleroutput}
+  0.49883
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p 0,4988 \textgreater{} 0,05. Uji chi-kuadrat juga punya mode yang memakai simulasi Monte Carlo.
+Parameter \textgreater{}p menganggap vektor y sebagai vektor peluang.
+\end{eulercomment}
+\begin{eulerprompt}
+>chitest([90,103,114,101,103,89],dup(1/6,6)',>p,>montecarlo)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.496
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya mendekati 0,5 (dosen mendapat 0,529, dan nilainya berubah tiap ENTER karena
+simulasi). Galat sebesar itu terlalu besar untuk menolak H0, jadi keseragaman tidak dapat
+ditolak. Ini tidak membuktikan dadunya seimbang, hanya bahwa hipotesisnya tidak dapat
+ditolak.
+b. Uji-t untuk rata-rata. Berikut data dengan rata-rata sebenarnya 200, lalu diuji apakah
+rata-ratanya 200. ttest() memerlukan rata-rata, simpangan baku, banyak data, dan nilai
+rata-rata yang diuji.
+\end{eulercomment}
+\begin{eulerprompt}
+>s=200+normal([1,100])*10; ...
+>ttest(mean(s),dev(s),100,200)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.38342
+\end{euleroutput}
+\begin{eulercomment}
+Karena H0 benar, nilai-p biasanya di atas 0,05 (dosen mendapat 0,2266). Ulangi ENTER dan
+nilainya berubah-ubah.
+
+c. Dua pengukuran diuji kesamaan rata-ratanya. H0 ditolak jika hasilnya \textless{} 0,05.
+\end{eulercomment}
+\begin{eulerprompt}
+>tcomparedata(normal(1,10),normal(1,10))
+\end{eulerprompt}
+\begin{euleroutput}
+  0.43805
+\end{euleroutput}
+\begin{eulercomment}
+Jika salah satu distribusi diberi bias (+2), penolakan makin sering. Ulangi beberapa kali
+untuk melihat efeknya.
+\end{eulercomment}
+\begin{eulerprompt}
+>tcomparedata(normal(1,10),normal(1,10)+2)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.005791
+\end{euleroutput}
+\begin{eulercomment}
+d. Uji independensi. Dua kelompok orang (laki-laki dan perempuan) memilih satu dari enam
+partai.
+\end{eulercomment}
+\begin{eulerprompt}
+>A=[23,37,43,52,64,74;27,39,41,49,63,76];  ...
+>  writetable(A,wc=6,labr=["m","f"],labc=1:6)
+\end{eulerprompt}
+\begin{euleroutput}
+             1     2     3     4     5     6
+       m    23    37    43    52    64    74
+       f    27    39    41    49    63    76
+\end{euleroutput}
+\begin{eulercomment}
+Apakah pilihan bebas dari jenis kelamin? Uji tabel chi-kuadrat menjawabnya.
+\end{eulercomment}
+\begin{eulerprompt}
+>tabletest(A)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.9907
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p 0,9907 jauh di atas 0,05, jadi kebebasan tidak dapat ditolak. Data ini tidak
+menunjukkan bahwa pilihan bergantung pada jenis kelamin. Tabel frekuensi harapan:
+\end{eulercomment}
+\begin{eulerprompt}
+>writetable(expectedtable(A),wc=6,dc=1,labr=["m","f"],labc=1:6)
+\end{eulerprompt}
+\begin{euleroutput}
+             1     2     3     4     5     6
+       m  24.9  37.9  41.9  50.3  63.3  74.7
+       f  25.1  38.1  42.1  50.7  63.7  75.3
+\end{euleroutput}
+\begin{eulercomment}
+Koefisien kontingensi terkoreksi sangat dekat dengan 0, sehingga pilihan tidak bergantung
+pada jenis kelamin.
+\end{eulercomment}
+\begin{eulerprompt}
+>contingency(A)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.042723
+\end{euleroutput}
+\begin{eulercomment}
+e. Analisis ragam (uji-F, ANOVA). Tiga sampel data normal diuji kesamaan rata-ratanya.
+Fungsinya varanalysis().
+\end{eulercomment}
+\begin{eulerprompt}
+>x1=[109,111,98,119,91,118,109,99,115,109,94]; mean(x1),
+\end{eulerprompt}
+\begin{euleroutput}
+  106.55
+\end{euleroutput}
+\begin{eulerprompt}
+>x2=[120,124,115,139,114,110,113,120,117]; mean(x2),
+\end{eulerprompt}
+\begin{euleroutput}
+  119.11
+\end{euleroutput}
+\begin{eulerprompt}
+>x3=[120,112,115,110,105,134,105,130,121,111]; mean(x3)
+\end{eulerprompt}
+\begin{euleroutput}
+  116.3
+\end{euleroutput}
+\begin{eulerprompt}
+>varanalysis(x1,x2,x3)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.013805
+\end{euleroutput}
+\begin{eulercomment}
+Rata-ratanya 106,5; 119,1; dan 116,3. Nilai-p 0,0138 \textless{} 0,05, jadi hipotesis kesamaan rata-rata
+ditolak, dengan peluang salah 1,4 \%.
+
+f. Dua perlakuan a dan b diterapkan pada orang yang sama. Uji tanda memutuskan apakah a
+lebih baik daripada b.
+\end{eulercomment}
+\begin{eulerprompt}
+>a=[8.0,7.4,5.9,9.4,8.6,8.2,7.6,8.1,6.2,8.9];
+>b=[6.8,7.1,6.8,8.3,7.9,7.2,7.4,6.8,6.8,8.1];
+>signtest(a,b)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.054687
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p 0,0547 sedikit di atas 0,05, jadi belum dapat ditolak bahwa a sama baiknya dengan b.
+Uji Wilcoxon lebih tajam, tetapi memakai besar selisihnya:
+\end{eulercomment}
+\begin{eulerprompt}
+>wilcoxon(a,b)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.029668
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p 0,0297 \textless{} 0,05, jadi H0 ditolak. Catatan kritis: dua uji yang sama-sama sahih
+memberi kesimpulan berbeda pada batas 0,05. Ini tanda bahwa bukti pada data ini hanya
+tipis, dan 0,05 bukan "garis ajaib". Dua contoh deret acak berikut menunjukkan perilaku
+Wilcoxon: dengan selisih -1 ditolak jelas, tanpa selisih tidak ditolak.
+\end{eulercomment}
+\begin{eulerprompt}
+>wilcoxon(normal(1,20),normal(1,20)-1)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.054213
+\end{euleroutput}
+\begin{eulerprompt}
+>wilcoxon(normal(1,20),normal(1,20))
+\end{eulerprompt}
+\begin{euleroutput}
+  0.11611
+\end{euleroutput}
+\begin{eulercomment}
+\begin{eulercomment}
+\eulerheading{10. Catatan untuk Pengguna R}
+\begin{eulercomment}
+EMT bukan pengganti R sebagai paket statistika, tetapi banyak prosedur statistika tersedia di
+EMT. Catatan ini merangkum perbedaan sintaks yang paling sering menjebak bagi yang sudah
+mengenal R.\\
+- Vektor: operator ":" di EMT dapat memakai ukuran langkah, misalnya 0:0.5:5. Fungsi c() tidak ada, penggabungan memakai kurung siku: [x,0,x].\\
+- Indeks negatif: di EMT, x[-2] berarti unsur kedua dari belakang, sedangkan di R berarti "semua kecuali unsur ke-2". Perilaku R ditiru dengan drop(x,2).\\
+- Vektor logika: di EMT, hasil perbandingan (0 atau 1) tidak langsung menjadi indeks. Unsur yang bernilai benar diambil dengan nonzeros().
+\end{eulercomment}
+\begin{eulerprompt}
+>x=[10.4, 5.6, 3.1, 6.4, 21.7]; [x,0,x]
+\end{eulerprompt}
+\begin{euleroutput}
+  [10.4,  5.6,  3.1,  6.4,  21.7,  0,  10.4,  5.6,  3.1,  6.4,  21.7]
+\end{euleroutput}
+\begin{eulerprompt}
+>x[-2], drop(x,2)
+\end{eulerprompt}
+\begin{euleroutput}
+  6.4
+  [10.4,  3.1,  6.4,  21.7]
+\end{euleroutput}
+\begin{eulerprompt}
+>x>5, x[nonzeros(x>5)]
+\end{eulerprompt}
+\begin{euleroutput}
+  [1,  1,  0,  1,  1]
+  [10.4,  5.6,  6.4,  21.7]
+\end{euleroutput}
+\begin{eulercomment}
+\begin{eulercomment}
+\eulerheading{11. Membaca dan Menulis Data}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{Arti konsep}
+\begin{eulercomment}
+Data biasanya datang dari luar EMT (Excel, survei, web) dan hasil analisis perlu dibawa
+keluar. Fungsi writematrix() dan readmatrix() menulis dan membaca matriks. Fungsi
+writetable() dan readtable() menulis dan membaca tabel berjudul.
+
+\end{eulercomment}
+\eulersubheading{Contoh dunia nyata}
+\begin{eulercomment}
+Seorang guru mengekspor nilai dari Excel sebagai CSV, menganalisisnya di EMT, lalu menyimpan
+ringkasannya kembali sebagai file yang dapat dibuka di Excel.
+
+\end{eulercomment}
+\eulersubheading{11.1 Membaca dan menulis vektor}
+\begin{eulercomment}
+Berikut cara menulis dan membaca vektor bilangan real ke file.
+\end{eulercomment}
+\begin{eulerprompt}
+>a=random(1,100); mean(a), dev(a),
+\end{eulerprompt}
+\begin{euleroutput}
+  0.44364
+  0.3037
+\end{euleroutput}
+\begin{eulercomment}
+Data ditulis ke file dengan writematrix(). Untuk catatan sendiri, file ditulis ke folder
+yang sama dengan notebook. Vektor kolom a' menghasilkan satu bilangan tiap baris.
+\end{eulercomment}
+\begin{eulerprompt}
+>filename="test.dat";
+>writematrix(a',filename);
+\end{eulerprompt}
+\begin{eulercomment}
+Data dibaca dengan readmatrix(), lalu file dihapus.
+\end{eulercomment}
+\begin{eulerprompt}
+>a=readmatrix(filename)';
+>fileremove(filename);
+>mean(a), dev(a),
+\end{eulerprompt}
+\begin{euleroutput}
+  0.44364
+  0.3037
+\end{euleroutput}
+\begin{eulercomment}
+Rata-rata dan simpangan baku sebelum dan sesudah penyimpanan sama, jadi data tersimpan dan
+terbaca dengan benar.
+
+writematrix() dan writetable() dapat diatur untuk bahasa lain. Pada sistem Indonesia (koma
+sebagai desimal), Excel memerlukan nilai berkoma desimal dengan titik koma sebagai pemisah.
+Berkas "test.csv" berikut akan muncul di folder kerja saat ini.
+\end{eulercomment}
+\begin{eulerprompt}
+>filename="test.csv"; ...
+>writematrix(random(5,3),file=filename,separator=",");
+\end{eulerprompt}
+\begin{eulercomment}
+Berkas itu dapat langsung dibuka di Excel versi Indonesia, lalu dihapus:
+\end{eulercomment}
+\begin{eulerprompt}
+>fileremove(filename);
+\end{eulerprompt}
+\begin{eulercomment}
+\end{eulercomment}
+\eulersubheading{11.2 Berkas CSV}
+\begin{eulercomment}
+Pertama, sebuah matriks ditulis ke berkas pada folder kerja.
+\end{eulercomment}
+\begin{eulerprompt}
+>file="test.csv";  ...
+>M=random(3,3); writematrix(M,file);
+>printfile(file)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.1117588409686002,0.05525081823408583,0.2931835879202024
+  0.7714979381194919,0.2541355735629442,0.8463894780460306
+  0.2938641984846708,0.4657032427307105,0.5283449738795509
+  
+\end{euleroutput}
+\begin{eulercomment}
+CSV ini dapat dibuka di Excel versi Inggris dengan klik dua kali. Pada sistem Jerman (atau
+Indonesia), data perlu diimpor dengan memperhatikan tanda desimal. Tanda titik desimal juga
+bawaan EMT, sehingga matriks dapat dibaca dengan readmatrix().
+\end{eulercomment}
+\begin{eulerprompt}
+>readmatrix(file)
+\end{eulerprompt}
+\begin{euleroutput}
+    0.11176  0.055251   0.29318 
+     0.7715   0.25414   0.84639 
+    0.29386    0.4657   0.52834 
+\end{euleroutput}
+\begin{eulercomment}
+Di Excel atau program serupa, matriks dapat diekspor sebagai CSV. Contoh: excel-data.csv.
+\end{eulercomment}
+\begin{eulerprompt}
+>printfile("excel-data.csv")
+\end{eulerprompt}
+\begin{euleroutput}
+  0;1000;1000
+  1;1051,271096;1072,508181
+  2;1105,170918;1150,273799
+  3;1161,834243;1233,67806
+  4;1221,402758;1323,129812
+  5;1284,025417;1419,067549
+  6;1349,858808;1521,961556
+  7;1419,067549;1632,31622
+  8;1491,824698;1750,6725
+  9;1568,312185;1877,610579
+  10;1648,721271;2013,752707
+\end{euleroutput}
+\begin{eulercomment}
+Sistem Jerman memakai titik koma sebagai pemisah dan koma sebagai desimal. Cara termudah
+membacanya ke Euler adalah readmatrix() dengan parameter \textgreater{}comma, yang mengganti koma dengan
+titik. Untuk CSV berbahasa Inggris, parameter itu dihilangkan.
+\end{eulercomment}
+\begin{eulerprompt}
+>M=readmatrix("excel-data.csv",>comma)
+\end{eulerprompt}
+\begin{euleroutput}
+          0      1000      1000 
+          1    1051.3    1072.5 
+          2    1105.2    1150.3 
+          3    1161.8    1233.7 
+          4    1221.4    1323.1 
+          5      1284    1419.1 
+          6    1349.9      1522 
+          7    1419.1    1632.3 
+          8    1491.8    1750.7 
+          9    1568.3    1877.6 
+         10    1648.7    2013.8 
+\end{euleroutput}
+\begin{eulercomment}
+Data digambar:
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(M'[1],M'[2:3],>points,color=[red,green]'):
+\end{eulerprompt}
+\begin{eulercomment}
+Kolom ke-3 (hijau) naik lebih cepat daripada kolom ke-2 (merah). Pola seperti ini sama dengan
+dua tabungan yang bunganya berbeda: yang bunganya lebih besar tumbuh lebih cepat. Data ini
+terlihat mengikuti pertumbuhan eksponensial: nilai kolom ke-2 pada t=10 adalah 1648,7 =
+1000 e\textasciicircum{}0,5 dan kolom ke-3 adalah 2013,8 = 1000 e\textasciicircum{}0,7.
+
+\end{eulercomment}
+\eulersubheading{11.3 Membaca dari Web}
+\begin{eulercomment}
+Situs web atau berkas dengan URL dapat dibuka di EMT dan dibaca baris demi baris. Perlu
+koneksi internet. Pada contoh ini, versi terbaru dibaca dari situs EMT dengan mencari
+tulisan "Version ..." pada sebuah judul.
+\end{eulercomment}
+\begin{eulerprompt}
+>function readversion () ...
+\end{eulerprompt}
+\begin{eulerudf}
+  urlopen("http://www.euler-math-toolbox.de/Programs/Changes.html");
+  repeat
+    until urleof();
+    s=urlgetline();
+    k=strfind(s,"Version ",1);
+    if k>0 then substring(s,k,strfind(s,"<",k)-1), break; endif;
+  end;
+  urlclose();
+  endfunction
+\end{eulerudf}
+\begin{eulerprompt}
+>readversion
+\end{eulerprompt}
+\begin{euleroutput}
+  Version 2024-01-12
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya versi EMT pada halaman tersebut (catatan dosen: Version 2021-04-30). Dapat berbeda
+karena situsnya diperbarui. Data publik lain, termasuk data saham, dapat dibaca dengan cara
+yang sama, selama dapat diakses.
+
+\begin{eulercomment}
+\eulerheading{12. Analisis Data Tambahan dari File yang Dibagikan}
+\begin{eulercomment}
+Paket dosen menyertakan dua file yang tidak dipakai di notebook dosen: sample.csv dan
+GOOG.csv. Keduanya dipakai di sini sebagai latihan analisis data nyata, dengan alur yang
+sama: baca, ringkas, gambar, uji.
+
+\end{eulercomment}
+\eulersubheading{12.1 Nilai Siswa (sample.csv)}
+\begin{eulercomment}
+*** Arti konsep dan contoh dunia nyata
+
+File ini berisi 200 baris dengan kolom female (0 = laki-laki, 1 = perempuan), read, write,
+math (nilai tes), hon (1 jika masuk kelompok berprestasi), dan femalexmath (hasil kali
+female dan math). Contoh nyata: sekolah ingin tahu apakah ada perbedaan nilai antara siswa
+laki-laki dan perempuan, dan apakah kemampuan membaca berkaitan dengan kemampuan menulis.
+
+*** Praktik di EMT
+
+Langkah 1. Baca file dengan baris pertama sebagai judul kolom, lalu lihat lima baris pertama.
+\end{eulercomment}
+\begin{eulerprompt}
+>\{SM,hs\}=readtable("sample.csv",>clabs);
+>writetable(SM[1:5],labc=hs,wc=12)
+\end{eulerprompt}
+\begin{euleroutput}
+        female        read       write        math         hon femalexmath
+             0          57          52          41           0           0
+             1          68          59          53           0          53
+             0          44          33          54           0           0
+             0          63          44          47           0           0
+             0          47          52          57           0           0
+\end{euleroutput}
+\begin{eulercomment}
+Langkah 2. Ambil tiap kolom sebagai vektor baris. Nilai asli di file: 109 perempuan dan 91
+laki-laki.
+\end{eulercomment}
+\begin{eulerprompt}
+>fm=SM[,1]'; rd=SM[,2]'; wr=SM[,3]'; ma=SM[,4]'; hn=SM[,5]';
+>sum(fm), cols(fm)
+\end{eulerprompt}
+\begin{euleroutput}
+  109
+  200
+\end{euleroutput}
+\begin{eulercomment}
+Langkah 3. Ringkasan nilai. Hasil hitung ulang di luar EMT: read rata-rata 52,23 (median 50,
+simpangan baku 10,25); write 52,78 (54; 9,48); math 52,65 (52; 9,37).
+\end{eulercomment}
+\begin{eulerprompt}
+>mean(rd), median(rd), dev(rd)
+\end{eulerprompt}
+\begin{euleroutput}
+  52.23
+  50
+  10.253
+\end{euleroutput}
+\begin{eulerprompt}
+>mean(wr), median(wr), dev(wr)
+\end{eulerprompt}
+\begin{euleroutput}
+  52.775
+  54
+  9.4786
+\end{euleroutput}
+\begin{eulerprompt}
+>mean(ma), median(ma), dev(ma)
+\end{eulerprompt}
+\begin{euleroutput}
+  52.645
+  52
+  9.3684
+\end{euleroutput}
+\begin{eulercomment}
+Langkah 4. Bandingkan nilai math menurut jenis kelamin. Indeks siswa perempuan dan laki-laki
+diambil dengan nonzeros().
+\end{eulercomment}
+\begin{eulerprompt}
+>i=nonzeros(fm==1); j=nonzeros(fm==0);
+>mean(ma[i]), mean(ma[j]), dev(ma[i]), dev(ma[j])
+\end{eulerprompt}
+\begin{euleroutput}
+  52.394
+  52.945
+  9.151
+  9.6648
+\end{euleroutput}
+\begin{eulercomment}
+Perempuan 52,39 (simpangan baku 9,15) dan laki-laki 52,95 (9,66). Selisih rata-rata hanya
+sekitar 0,55 poin. Uji kesamaan dua rata-rata (H0: sama):
+\end{eulercomment}
+\begin{eulerprompt}
+>tcomparedata(ma[i],ma[j])
+\end{eulerprompt}
+\begin{euleroutput}
+  0.34078
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p sekitar 0,68 (hasil hitung ulang di luar EMT, 0,68 baik dengan uji Welch maupun
+gabungan), jauh di atas 0,05, jadi tidak ada bukti perbedaan nilai math. Untuk nilai write,
+perempuan rata-rata 54,99 dan laki-laki 50,12:
+\end{eulercomment}
+\begin{eulerprompt}
+>mean(wr[i]), mean(wr[j])
+\end{eulerprompt}
+\begin{euleroutput}
+  54.991
+  50.121
+\end{euleroutput}
+\begin{eulerprompt}
+>tcomparedata(wr[i],wr[j])
+\end{eulerprompt}
+\begin{euleroutput}
+  0.00016982
+\end{euleroutput}
+\begin{eulercomment}
+Nilai-p sekitar 0,0003, jadi H0 ditolak: ada perbedaan nilai menulis, dan perempuan lebih
+tinggi sekitar 4,9 poin. Catatan kritis: ini hanya perbedaan rata-rata kelompok pada data
+ini, bukan alasan untuk menilai individu, dan sebabnya tidak dapat disimpulkan dari data.
+
+Langkah 5. Hubungan antarnilai. Koefisien korelasi (hitung ulang di luar EMT): read-write
+0,597; read-math 0,662; write-math 0,617. Semuanya positif dan cukup kuat.
+\end{eulercomment}
+\begin{eulerprompt}
+>correl(rd,wr), correl(rd,ma), correl(wr,ma)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.59678
+  0.66228
+  0.61745
+\end{euleroutput}
+\begin{eulercomment}
+Garis regresi write terhadap read:
+\end{eulercomment}
+\begin{eulerprompt}
+>pf=polyfit(rd,wr,1)
+\end{eulerprompt}
+\begin{euleroutput}
+  [23.959,  0.55171]
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya write = 23,96 + 0,552 read. Setiap kenaikan 1 poin read berkaitan dengan kenaikan
+sekitar 0,55 poin write.
+\end{eulercomment}
+\begin{eulerprompt}
+>plot2d(rd,wr,>points); plot2d("evalpoly(x,pf)",>add,color=red):
+\end{eulerprompt}
+\begin{eulercomment}
+Langkah 6. Apakah kelompok berprestasi (hon) bergantung pada jenis kelamin? Tabel
+kontingensi dibuat lalu diuji.
+\end{eulercomment}
+\begin{eulerprompt}
+>\{x1,x2,ct\}=getstatistics(fm,hn); ...
+>writetable(ct,labr=["laki-laki","perempuan"],labc=["tidak","ya"])
+\end{eulerprompt}
+\begin{euleroutput}
+                 tidak        ya
+   laki-laki        74        17
+   perempuan        77        32
+\end{euleroutput}
+\begin{eulerprompt}
+>tabletest(ct)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.08043
+\end{euleroutput}
+\begin{eulercomment}
+Frekuensi: laki-laki 74 tidak dan 17 ya (18,7 \%); perempuan 77 tidak dan 32 ya (29,4 \%).
+Nilai-p sekitar 0,080 (uji chi-kuadrat Pearson tanpa koreksi, hitung ulang di luar EMT).
+Karena 0,080 \textgreater{} 0,05, H0 (saling bebas) tidak dapat ditolak. Selisih 29,4 \% dan 18,7 \% tampak
+besar, tetapi pada ukuran sampel ini belum cukup kuat untuk disebut nyata. Catatan kritis:
+hasil di dekat 0,05 sebaiknya dilaporkan apa adanya, tanpa dibulatkan ke kesimpulan "ada" atau
+"tidak ada".
+
+\end{eulercomment}
+\eulersubheading{12.2 Harga Saham Mingguan (GOOG.csv)}
+\begin{eulercomment}
+*** Arti konsep dan contoh dunia nyata
+
+File ini berisi harga mingguan Google dari 4 November 2019 sampai 2 November 2020 (kolom
+Date, Open, High, Low, Close, Adj Close, Volume). Satu baris tanggal 2020-11-02 berisi
+"null" (data kosong) dan dibuang, sehingga ada 53 data harga penutupan. Contoh nyata: investor
+melihat seberapa besar harga berayun, dan seberapa cepat harga turun pada masa krisis.
+Karena kolom tanggal berupa teks dan ada baris "null", harga penutupan (Close) disalin
+langsung dari file ke dalam vektor berikut, dalam urutan aslinya.
+
+*** Praktik di EMT
+
+\end{eulercomment}
+\begin{eulerprompt}
+>Close=[1311.37,1334.87,1295.34,1304.96,1340.62,1347.83,1349.59,1351.89,1360.66, ...
+>1429.73,1480.39,1466.71,1434.23,1479.23,1520.74,1485.11,1339.33,1298.41,1219.73, ...
+>1072.32,1110.71,1097.88,1211.45,1283.25,1279.31,1320.61,1388.37,1373.19,1410.42, ...
+>1428.92,1438.39,1413.18,1431.72,1359.90,1464.70,1541.74,1515.55,1511.87,1482.96, ...
+>1494.49,1507.73,1580.42,1644.41,1591.04,1520.72,1459.99,1444.96,1458.42,1515.22, ...
+>1573.01,1641.00,1621.01,1638.35];
+>n=cols(Close); n
+\end{eulerprompt}
+\begin{euleroutput}
+  53
+\end{euleroutput}
+\begin{eulercomment}
+Ringkasan harga: rata-rata 1414,68; simpangan baku 132,74; terendah 1072,32 (minggu ke-20,
+16 Maret 2020, saat pasar jatuh); tertinggi 1644,41 (minggu ke-43, 24 Agustus 2020).
+\end{eulercomment}
+\begin{eulerprompt}
+>mean(Close), dev(Close), min(Close), max(Close)
+\end{eulerprompt}
+\begin{euleroutput}
+  1414.7
+  132.74
+  1072.3
+  1644.4
+\end{euleroutput}
+\begin{eulerprompt}
+>statplot(1:n,Close,"b"):
+\end{eulerprompt}
+\begin{eulercomment}
+Grafik memperlihatkan jatuh tajam pada Maret 2020 lalu pulih. Imbal hasil mingguan dihitung
+dari rasio harga berurutan.
+\end{eulercomment}
+\begin{eulerprompt}
+>ret=Close[2:n]/Close[1:n-1]-1;
+>mean(ret)*100, dev(ret)*100
+\end{eulerprompt}
+\begin{euleroutput}
+  0.50989
+  4.0352
+\end{euleroutput}
+\begin{eulercomment}
+Rata-rata imbal hasil sekitar 0,51 \% per minggu dengan simpangan baku sekitar 4,04 \%. Dari
+harga awal 1311,37 sampai akhir 1638,35, kenaikannya sekitar 24,9 \%. Imbal hasil terendah
+sekitar -12,1 \% dan tertinggi sekitar 10,3 \% dalam satu minggu.
+\end{eulercomment}
+\begin{eulerprompt}
+>min(ret)*100, max(ret)*100
+\end{eulerprompt}
+\begin{euleroutput}
+  -12.085
+  10.344
+\end{euleroutput}
+\begin{eulercomment}
+Garis kecenderungan linear harga terhadap nomor minggu:
+\end{eulercomment}
+\begin{eulerprompt}
+>pg=polyfit(1:n,Close,1)
+\end{eulerprompt}
+\begin{euleroutput}
+  [1274.6,  5.1887]
+\end{euleroutput}
+\begin{eulercomment}
+Hasilnya Close = 1274,6 + 5,19 minggu. Harga naik rata-rata sekitar 5,2 poin tiap minggu.
+Catatan kritis: garis lurus ini hanya ringkasan kasar. Penurunan Maret 2020 sangat jauh dari
+garis, sehingga tidak layak dipakai untuk meramal. Selain itu, simpangan baku imbal hasil 4 \%
+per minggu menunjukkan risiko yang besar. Data hanya satu tahun dan satu saham, sehingga
+kesimpulannya tidak dapat digeneralisasi.
+
+\begin{eulercomment}
+\eulerheading{13. Latihan Soal}
+\begin{eulercomment}
+Kelima soal berikut memakai perintah yang sudah dipakai di atas. Jawaban saya hitung ulang di
+luar EMT, dan hasilnya sama dengan keluaran yang tertulis di pembahasan. Khusus hasil
+simulasi pada Soal 5, angkanya berubah setiap kali perintah dijalankan.
+
+\end{eulercomment}
+\eulersubheading{Soal 1: statistika deskriptif}
+\begin{eulercomment}
+Waktu tempuh (menit) seorang karyawan ke kantor selama 12 hari: 22, 25, 30, 28, 35, 27, 24,
+40, 26, 29, 31, 23. Tentukan rata-rata, median, dan simpangan baku, lalu jelaskan apakah ada
+nilai yang menarik rata-rata.
+\end{eulercomment}
+\begin{eulerprompt}
+>wt=[22,25,30,28,35,27,24,40,26,29,31,23];
+>mean(wt), median(wt), dev(wt)
+\end{eulerprompt}
+\begin{euleroutput}
+  28.333
+  27.5
+  5.1932
+\end{euleroutput}
+\begin{eulercomment}
+Pembahasan: rata-rata 28,33 menit, median 27,5 menit, simpangan baku 5,19 menit. Rata-rata
+sedikit di atas median karena dua hari yang lama (35 dan 40 menit) menariknya ke atas. Median
+lebih mewakili hari yang biasa. Simpangan baku 5,19 berarti waktu tempuh biasanya berbeda
+sekitar 5 menit dari 28,33.
+
+\end{eulercomment}
+\eulersubheading{Soal 2: peluang pada distribusi normal}
+\begin{eulercomment}
+Berat bersih sebungkus gula berdistribusi normal dengan rata-rata 500 g dan simpangan baku
+8 g. Tentukan (a) peluang berat kurang dari 490 g dan (b) peluang berat antara 495 g dan
+510 g.
+\end{eulercomment}
+\begin{eulerprompt}
+>normaldis(490,500,8)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.10565
+\end{euleroutput}
+\begin{eulerprompt}
+>normaldis(510,500,8)-normaldis(495,500,8)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.62836
+\end{euleroutput}
+\begin{eulercomment}
+Pembahasan: (a) 0,1056, atau sekitar 10,6 \%. 490 g berada 10/8 = 1,25 simpangan baku di bawah
+rata-rata, jadi sekitar 1 dari 10 bungkus lebih ringan dari itu. (b) 0,6284, atau sekitar
+62,8 \%. Peluang antara dua nilai adalah selisih fungsi distribusi kumulatif di kedua nilai
+itu.
+
+\end{eulercomment}
+\eulersubheading{Soal 3: uji chi-kuadrat}
+\begin{eulercomment}
+Persilangan dua sifat pada kacang polong menghasilkan 556 biji dengan empat jenis: 315, 108,
+101, dan 32. Menurut teori Mendel, perbandingannya 9:3:3:1. Ujilah pada taraf 5 \% apakah data
+sesuai dengan teori itu.
+\end{eulercomment}
+\begin{eulerprompt}
+>e=556*[9,3,3,1]/16
+\end{eulerprompt}
+\begin{euleroutput}
+  [312.75,  104.25,  104.25,  34.75]
+\end{euleroutput}
+\begin{eulerprompt}
+>chitest([315,108,101,32],e')
+\end{eulerprompt}
+\begin{euleroutput}
+  0.92543
+\end{euleroutput}
+\begin{eulercomment}
+Pembahasan: H0 adalah data sesuai perbandingan 9:3:3:1, sehingga frekuensi harapannya 312,75;
+104,25; 104,25; dan 34,75. Statistik chi-kuadrat = 0,016 + 0,135 + 0,101 + 0,218 = 0,470
+dengan derajat bebas 3, dan nilai-p sekitar 0,925. Karena 0,925 \textgreater{} 0,05, H0 tidak ditolak:
+data tidak bertentangan dengan teori. Ini tidak membuktikan teorinya benar, hanya bahwa data
+tidak memberi alasan untuk menolaknya.
+
+\end{eulercomment}
+\eulersubheading{Soal 4: regresi linear}
+\begin{eulercomment}
+Suhu harian (derajat Celsius) dan banyak gelas es teh yang terjual: suhu 24, 26, 28, 30, 32,
+34 menghasilkan penjualan 31, 38, 41, 47, 55, 58. Tentukan garis regresi, perkiraan
+penjualan pada suhu 29 derajat, dan koefisien korelasinya.
+\end{eulercomment}
+\begin{eulerprompt}
+>sh=[24,26,28,30,32,34]; es=[31,38,41,47,55,58];
+>ps=polyfit(sh,es,1)
+\end{eulerprompt}
+\begin{euleroutput}
+  [-34.543,  2.7429]
+\end{euleroutput}
+\begin{eulerprompt}
+>evalpoly(29,ps), correl(sh,es)
+\end{eulerprompt}
+\begin{euleroutput}
+  45
+  0.99307
+\end{euleroutput}
+\begin{eulerprompt}
+>statplot(sh,es,"b"); plot2d("evalpoly(x,ps)",>add,color=blue,style="--"):
+\end{eulerprompt}
+\begin{eulercomment}
+Pembahasan: garisnya y = -34,54 + 2,743 x. Setiap kenaikan suhu 1 derajat menambah penjualan
+sekitar 2,7 gelas. Untuk suhu 29 derajat, perkiraannya 45 gelas. Korelasi 0,993 menunjukkan
+hubungan positif yang sangat kuat. Suhu 29 berada di dalam rentang data (24 sampai 34), jadi
+perkiraannya lebih dapat dipercaya daripada perkiraan di luar rentang. Konstanta -34,54 tidak
+punya arti nyata, karena suhu 0 derajat jauh di luar data.
+
+\end{eulercomment}
+\eulersubheading{Soal 5: binomial dan simulasi}
+\begin{eulercomment}
+Sebuah kuis berisi 10 soal pilihan ganda dengan 4 pilihan, dan seorang siswa menjawab dengan
+menebak. Hitung (a) peluang tepat 3 jawaban benar dan (b) peluang paling sedikit 6 jawaban
+benar. Cek dengan simulasi 10000 siswa.
+\end{eulercomment}
+\begin{eulerprompt}
+>bindis(3,10,0.25)-bindis(2,10,0.25)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.25028
+\end{euleroutput}
+\begin{eulerprompt}
+>1-bindis(5,10,0.25)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.019728
+\end{euleroutput}
+\begin{eulerprompt}
+>kb=sum(intrandom(10000,10,4)==1)'; mean(kb==3), mean(kb>=6)
+\end{eulerprompt}
+\begin{euleroutput}
+  0.2537
+  0.0179
+\end{euleroutput}
+\begin{eulercomment}
+Pembahasan: banyak jawaban benar berdistribusi binomial dengan n = 10 dan p = 0,25.
+(a) Peluang tepat 3 benar adalah selisih bindis(3) dan bindis(2), yaitu 0,2503. (b) Peluang
+paling sedikit 6 benar adalah 1 - bindis(5) = 0,0197, atau sekitar 2 \%, jadi menebak hampir
+tidak pernah menghasilkan 6 benar atau lebih. Hasil simulasi berada di sekitar 0,25 dan 0,02
+dan berubah di setiap ENTER. Makin banyak siswa yang disimulasikan, hasilnya makin dekat ke
+nilai teori.
+
+\begin{eulercomment}
+\eulerheading{Kesimpulan}
+\begin{eulercomment}
+1. Data statistik disimpan sebagai vektor, matriks, dan tabel, serta dibaca dari file.
+2. Statistika deskriptif (rata-rata, median, simpangan baku, kuartil) meringkas data.
+3. Data acak membantu melihat pola distribusi. Pola itu makin jelas pada data banyak.
+4. Uji statistika memakai nilai-p: H0 ditolak jika nilai-p \textless{} 0,05. Nilai-p dekat 0,05 perlu
+\end{eulercomment}
+\begin{eulerttcomment}
+   dibaca hati-hati, dan "tidak ditolak" bukan berarti "terbukti benar".
+\end{eulerttcomment}
+\begin{eulercomment}
+5. Simulasi jumlah dadu menunjukkan Teorema Limit Pusat: hasilnya mendekati normal.
+6. Regresi dan korelasi menunjukkan hubungan antardata, tetapi tidak membuktikan sebab-akibat.
+7. Pada data nyata (sample.csv dan GOOG.csv), perbedaan rata-rata, korelasi, dan risiko dapat
+\end{eulercomment}
+\begin{eulerttcomment}
+   dihitung dengan perintah yang sama, tetapi kesimpulannya harus mempertimbangkan ukuran
+   sampel dan asumsi uji.
+\end{eulerttcomment}
+\end{eulernotebook}
+\end{document}
