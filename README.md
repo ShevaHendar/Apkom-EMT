@@ -6,7 +6,7 @@ Repository ini berisi kumpulan dokumen tugas dan berkas pendukung mata kuliah Ap
 
 ## Tautan Terkait
 - **Repository GitHub:** [https://github.com/ShevaHendar/Apkom-EMT](https://github.com/ShevaHendar/Apkom-EMT)[cite: 12]
-- **Tautan PDF:** []([https://contoh-link-anda.com](https://drive.google.com/file/d/1VM2zQRnIuu7cF2-bvJksRZ5GO3yi8VFe/view?usp=drive_link))
+- **Tautan PDF:** [https://drive.google.com/file/d/1VM2zQRnIuu7cF2-bvJksRZ5GO3yi8VFe/view?usp=drive_link](https://drive.google.com/file/d/1VM2zQRnIuu7cF2-bvJksRZ5GO3yi8VFe/view?usp=drive_link)
 
 ## Catatan Berkas
 Berkas utama yang dikumpulkan berupa dokumen berformat PDF yang tersimpan pada direktori proyek.
