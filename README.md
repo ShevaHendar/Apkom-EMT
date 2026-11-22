@@ -1,6 +1,4 @@
 # Apkom-EMT
-memuat file file EMT dalam memecahkan dan menyelesaikan persoalan matematika
-# Apkom-EMT
 
 Repository ini berisi kumpulan dokumen tugas dan berkas pendukung mata kuliah Aplikasi Komputer (APKOM) berbasis Euler Math Toolbox (EMT).
 
